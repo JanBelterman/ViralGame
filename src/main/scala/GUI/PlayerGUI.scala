@@ -1,6 +1,5 @@
 package GUI
 import java.awt.GridLayout
-import java.awt.event.{ActionEvent, ActionListener}
 
 import Data.Paradigm
 import Data.Paradigm.Paradigm
@@ -33,27 +32,34 @@ class PlayerGUI(val topText: String) extends JPanel {
   add(paradigm3Button)
 
   setInteractable(false)
-  var chosenParadigm: Paradigm = null
 
-  paradigm1Button.addActionListener( _ => {onParadigmClicked(Paradigm.FUNCTIONAL)})
-  paradigm2Button.addActionListener( _ => {onParadigmClicked(Paradigm.OO)})
-  paradigm3Button.addActionListener( _ => {onParadigmClicked(Paradigm.DECLARATIVE)})
+  var chosenParadigm: Paradigm = _
+  paradigm1Button.addActionListener( _ => chosenParadigm = Paradigm.FUNCTIONAL)
+  paradigm2Button.addActionListener( _ => chosenParadigm = Paradigm.OO)
+  paradigm3Button.addActionListener( _ => chosenParadigm = Paradigm.DECLARATIVE)
 
-  private def onParadigmClicked(paradigm: Paradigm) = {
-    chosenParadigm = paradigm
-  }
+  var functionalProbability = 0.0
+  var ooProbability = 0.0
+  var declarativeProbability = 0.0
 
   def setNameText(text: String): Unit = {
     playerLabel.setText(text)
   }
 
   def setParadigmProbability(paradigm: Paradigm, probability: Double): Unit = {
-    val (label, prefix) = paradigm match {
-      case Data.Paradigm.FUNCTIONAL => (fpLabel, fpPrefix)
-      case Data.Paradigm.OO => (ooLabel, ooPrefix)
-      case Data.Paradigm.DECLARATIVE =>(dclLabel, dclPrefix)
+    // todo store somewhere else the probabilities? maybe in an closure? so this class can call getFunctionalProbability()?
+    val (label, prefix, newProbability) = paradigm match {
+      case Data.Paradigm.FUNCTIONAL =>
+        functionalProbability = probability
+        (fpLabel, fpPrefix, functionalProbability)
+      case Data.Paradigm.OO =>
+        ooProbability = probability
+        (ooLabel, ooPrefix, ooProbability)
+      case Data.Paradigm.DECLARATIVE =>
+        declarativeProbability = probability
+        (dclLabel, dclPrefix, declarativeProbability)
     }
-    label.setText(prefix + probability)
+    label.setText(prefix + newProbability)
   }
 
   def askInput(): Paradigm = {
@@ -71,4 +77,5 @@ class PlayerGUI(val topText: String) extends JPanel {
     paradigm2Button.setVisible(isInteractable)
     paradigm3Button.setVisible(isInteractable)
   }
+
 }
