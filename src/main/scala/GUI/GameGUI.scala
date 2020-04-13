@@ -63,26 +63,29 @@ class GameGUI private(val gridSize: Int,
   // todo this function has all data and passes it to other functions that are pure (and thus don't have own data or side effects)
   // todo then this function gets the return variables and stores them
   def run(): Unit = {
-    playTurn()
+    playTurn(players)
     simulateGridland()
     boardUI.revalidate()
     boardUI.repaint()
     run()
   }
 
-  def playTurn(): Unit = {
-    for (i <- 0 to 3) {
-      val playerGUI = players(i)
-      val paradigm = playerGUI.getVideoParadigm() match {
-        case None => playerGUI.askInput()
+  def playTurn(players: List[PlayerGUI]): Unit = players match {
+    case Nil => ()
+    case player::rest =>
+      val paradigm = player.getVideoParadigm() match {
+        case None => player.askInput()
         case Some(paradigm) => paradigm
       }
-      playerGUI.increaseProbability(paradigm)
-    }
+      player.increaseProbability(paradigm)
+      player.updateProbability()
+      playTurn(rest)
   }
 
   // todo Gridlanders moeten pas na de ronde hun nieuwe subscription over kunnen brengen (dus immutable data!)
+  // todo immutable data gebruiken voor het bovenstaande, zo krijgen de gridlanders de subscription van de laatste waar ze mee praten
   private def simulateGridland(): Unit = {
+//    val newGrid = simulateGridland()     // todo immutable data op deze manier en dan recursen door alles heen, maar hoe cords bijhouden?
     for (x <- 0 until gridSize) {
       for (y <- 0 until gridSize) {
         val gridLander = getGrid()(x)(y)

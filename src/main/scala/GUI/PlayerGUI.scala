@@ -41,25 +41,6 @@ class PlayerGUI(val player: GameTypes.PlayerTuple) extends JPanel {
   paradigm2Button.addActionListener( _ => chosenParadigm = Paradigm.OO)
   paradigm3Button.addActionListener( _ => chosenParadigm = Paradigm.DECLARATIVE)
 
-  def setNameText(text: String): Unit = {
-    playerLabel.setText(text)
-  }
-
-//  def setParadigmProbability(paradigm: Paradigm, probability: Double): Unit = {
-//    val (label, prefix, newProbability) = paradigm match {
-//      case Data.Paradigm.FUNCTIONAL =>
-//        functionalProbability = probability
-//        (fpLabel, fpPrefix, functionalProbability)
-//      case Data.Paradigm.OO =>
-//        ooProbability = probability
-//        (ooLabel, ooPrefix, ooProbability)
-//      case Data.Paradigm.DECLARATIVE =>
-//        declarativeProbability = probability
-//        (dclLabel, dclPrefix, declarativeProbability)
-//    }
-//    label.setText(prefix + (newProbability * 100).toInt + "%")
-//  }
-
   def updateProbability(): Unit = {
     fpLabel.setText(fpPrefix + (getProbability(Paradigm.FUNCTIONAL) * 100).toInt + "%")
     ooLabel.setText(ooPrefix + (getProbability(Paradigm.OO) * 100).toInt + "%")
