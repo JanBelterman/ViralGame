@@ -14,9 +14,9 @@ import scala.collection.mutable.ArrayBuffer
 class BoardGUI(val squareSize: Int,
                val gridSize:Int,
                val getGrid: () => mutable.Seq[ArrayBuffer[Gridlander.Value]],
-               val getSquareColor: ColorSchemes.ColorScheme) extends JPanel {
+               val getSquareColor: GameTypes.ColorScheme) extends JPanel {
 
-  // todo (make gridlander a function with state? so that paintcomponent can call it?)
+  // todo (make gridlander a function with state? so that paintcomponent can call it?) and paintcomponent does not have that mutable data
   val grid: Array[Array[Gridlander]] = Array.ofDim[Gridlander](gridSize, gridSize)
 
   def changeGridlander(x: Int, y: Int, gridlander: Gridlander): Unit = {

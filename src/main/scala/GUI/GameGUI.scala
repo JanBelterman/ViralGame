@@ -1,6 +1,6 @@
 package GUI
 
-import java.awt.{FlowLayout, GridLayout}
+import java.awt.{Color, FlowLayout, GridLayout}
 
 import AI.RandomAI
 import Data.Gridlander.Gridlander
@@ -8,15 +8,21 @@ import Data.{Gridlander, Paradigm}
 import Data.Paradigm.Paradigm
 import javax.swing.{JFrame, JLabel, JPanel}
 
+object GameTypes {
+  type ColorScheme = Gridlander => Color
+  type GenerationStrategy = Int => Array[Array[Gridlander]]
+}
+
 class GameGUI private(val gridSize: Int,
                       val squareSize: Int,
-                      val colorScheme: ColorSchemes.ColorScheme) {
+                      val colorScheme: GameTypes.ColorScheme,
+                      val generateGridLand: GameTypes.GenerationStrategy) {
 
   val frame = new JFrame
   frame.setLayout(new GridLayout(3,3))
 
   // todo of losse functies die allemaal een grid passen?
-  val (changeGridlander, generateInitalGrid, getGrid) = Gridland.Gridland.createGridland(10)
+  val (changeGridlander, getGrid) = Gridland.Gridland.createGridland(10)
 
   val boardUI = new BoardGUI(squareSize, gridSize, getGrid, colorScheme)
   val centeredBoardUI = new JPanel(new FlowLayout(FlowLayout.CENTER))
@@ -78,23 +84,13 @@ class GameGUI private(val gridSize: Int,
     playerGUI.setParadigmProbability(paradigm, probability)
   }
 
-  // todo higher order function generate gridland strategy?
   def generateInitialGrid(): Unit = {
-    // Generate other gridlanders
-    for (i <- 0 until gridSize) {
-      for (j <- 0 until gridSize) {
-        boardUI.changeGridlander(i, j, scala.util.Random.nextInt(3) match {
-          case 0 => Gridlander.PREFER_FUNCTIONAL
-          case 1 => Gridlander.PREFER_OO
-          case 2 => Gridlander.PREFER_DECLARATIVE
-        })
+    val gridLand: Array[Array[Gridlander]] = generateGridLand(gridSize)
+    for (x <- 0 until gridSize) {
+      for (y <- 0 until gridSize) {
+        boardUI.changeGridlander(x, y, gridLand(x)(y))
       }
     }
-    // Generate initial subscribers
-    boardUI.changeGridlander(0, 0, Gridlander.SUB_PLAYER_1)
-    boardUI.changeGridlander(0, boardUI.gridSize - 1, Gridlander.SUB_PLAYER_2)
-    boardUI.changeGridlander(boardUI.gridSize - 1, 0, Gridlander.SUB_PLAYER_3)
-    boardUI.changeGridlander(boardUI.gridSize - 1, boardUI.gridSize - 1, Gridlander.SUB_PLAYER_4)
   }
 
   // todo Gridlanders moeten pas na de ronde hun nieuwe subscription over kunnen brengen (dus immutable data!)
@@ -158,8 +154,11 @@ class GameGUI private(val gridSize: Int,
 
 object GameGUI {
 
-  def createGameGUI(gridSize: Int, squareSize: Int, colorScheme: ColorSchemes.ColorScheme): GameGUI = {
-    new GameGUI(gridSize, squareSize, colorScheme)
+  def createGameGUI(gridSize: Int,
+                    squareSize: Int,
+                    colorScheme: GameTypes.ColorScheme,
+                    generationStrategie: GameTypes.GenerationStrategy): GameGUI = {
+    new GameGUI(gridSize, squareSize, colorScheme, generationStrategie)
   }
 
 }

@@ -1,0 +1,5 @@
+package Gridland
+
+object Player {
+
+}

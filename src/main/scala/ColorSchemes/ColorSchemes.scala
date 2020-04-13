@@ -1,24 +1,22 @@
-package GUI
+package ColorSchemes
 
 import java.awt.Color
 
 import Data.Gridlander
-import Data.Gridlander.Gridlander
+import GUI.GameTypes
 
 object ColorSchemes {
 
-  type ColorScheme = Gridlander => Color
-
-  def getClassicColorScheme: ColorScheme = {
+  def getClassicColorScheme: GameTypes.ColorScheme = {
     createColorSchema(List(Color.BLUE, Color.GREEN, Color.YELLOW, Color.RED, Color.WHITE, Color.LIGHT_GRAY, Color.GRAY, Color.BLACK))
   }
 
-  def getVibrantColorScheme: ColorScheme = {
+  def getVibrantColorScheme: GameTypes.ColorScheme = {
     createColorSchema(List(Color.BLUE, Color.GREEN, Color.YELLOW, Color.RED, Color.PINK, Color.MAGENTA, Color.CYAN, Color.BLACK))
   }
 
   // Closure function factory for avoiding duplicate code
-  def createColorSchema(colors: List[Color]): ColorScheme = {
+  def createColorSchema(colors: List[Color]): GameTypes.ColorScheme = {
     case Gridlander.SUB_PLAYER_1 => colors(0)
     case Gridlander.SUB_PLAYER_2 => colors(1)
     case Gridlander.SUB_PLAYER_3 => colors(2)
