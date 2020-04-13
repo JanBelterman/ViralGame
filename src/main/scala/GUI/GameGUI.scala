@@ -21,7 +21,7 @@ class GameGUI private(val gridSize: Int,
   val frame = new JFrame
   frame.setLayout(new GridLayout(3,3))
 
-  // todo of losse functies die allemaal een grid passen?
+  // todo gridland als object, player als object
   val (changeGridlander, getGrid) = Gridland.Gridland.createGridland(10)
 
   val boardUI = new BoardGUI(squareSize, gridSize, getGrid, colorScheme)

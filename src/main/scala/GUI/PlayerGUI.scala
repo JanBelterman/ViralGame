@@ -12,9 +12,9 @@ class PlayerGUI(val topText: String) extends JPanel {
   val fpPrefix = "FP: "
   val ooPrefix = "OO: "
   val dclPrefix = "DCL: "
-  val fpLabel = new JLabel(fpPrefix + 0, 0)
-  val ooLabel = new JLabel(ooPrefix + 0, 0)
-  val dclLabel = new JLabel(dclPrefix + 0, 0)
+  val fpLabel = new JLabel(fpPrefix + 0 + "%", 0)
+  val ooLabel = new JLabel(ooPrefix + 0 + "%", 0)
+  val dclLabel = new JLabel(dclPrefix + 0 + "%", 0)
 
   val paradigm1Button = new JButton("Create FP video")
   val paradigm2Button = new JButton("Create OO video")
@@ -47,7 +47,6 @@ class PlayerGUI(val topText: String) extends JPanel {
   }
 
   def setParadigmProbability(paradigm: Paradigm, probability: Double): Unit = {
-    // todo store somewhere else the probabilities? maybe in an closure? so this class can call getFunctionalProbability()?
     val (label, prefix, newProbability) = paradigm match {
       case Data.Paradigm.FUNCTIONAL =>
         functionalProbability = probability
@@ -59,7 +58,7 @@ class PlayerGUI(val topText: String) extends JPanel {
         declarativeProbability = probability
         (dclLabel, dclPrefix, declarativeProbability)
     }
-    label.setText(prefix + newProbability)
+    label.setText(prefix + (newProbability * 100).toInt + "%")
   }
 
   def askInput(): Paradigm = {
