@@ -6,6 +6,7 @@ import AI.RandomAI
 import Data.Gridlander.Gridlander
 import Data.{Gridlander, Paradigm}
 import Data.Paradigm.Paradigm
+import Gridland.GridLand
 import javax.swing.{JFrame, JLabel, JPanel}
 
 object GameTypes {
@@ -21,8 +22,7 @@ class GameGUI private(val gridSize: Int,
   val frame = new JFrame
   frame.setLayout(new GridLayout(3,3))
 
-  // todo gridland als object, player als object
-  val (changeGridlander, getGrid) = Gridland.Gridland.createGridland(10)
+  val (changeGridLander, getGrid, getGridLander) = GridLand.createGridLand(10, generateGridLand)
 
   val boardUI = new BoardGUI(squareSize, gridSize, getGrid, colorScheme)
   val centeredBoardUI = new JPanel(new FlowLayout(FlowLayout.CENTER))
@@ -57,10 +57,12 @@ class GameGUI private(val gridSize: Int,
   frame.setLocationByPlatform(true)
   frame.setVisible(true)
 
-  // todo immutable data in recursive game loop
+  // todo immutable data in recursive game loop also check when game is won (end case of recursion)
   def run(): Unit = {
     playTurn()
     simulateGridland()
+    boardUI.revalidate()
+    boardUI.repaint()
     run()
   }
 
@@ -84,31 +86,22 @@ class GameGUI private(val gridSize: Int,
     playerGUI.setParadigmProbability(paradigm, probability)
   }
 
-  def generateInitialGrid(): Unit = {
-    val gridLand: Array[Array[Gridlander]] = generateGridLand(gridSize)
-    for (x <- 0 until gridSize) {
-      for (y <- 0 until gridSize) {
-        boardUI.changeGridlander(x, y, gridLand(x)(y))
-      }
-    }
-  }
-
   // todo Gridlanders moeten pas na de ronde hun nieuwe subscription over kunnen brengen (dus immutable data!)
   private def simulateGridland(): Unit = {
     for (x <- 0 until gridSize) {
       for (y <- 0 until gridSize) {
-        val gridLander = boardUI.grid(x)(y)
+        val gridLander = getGrid()(x)(y)
         val playerGUI = getPlayerGUIAndIndex(gridLander)
         val getNeighborStateAfterConversation: (Gridlander) => Option[Gridlander] = simulateMeeting(playerGUI) // Currying and partial function application for clearer code
         List((x, y - 1), (x + 1, y), (x, y + 1), (x - 1, y)).foreach((neighborCords: (Int, Int)) => {
           val (nx, ny) = neighborCords
-          boardUI.getGridlander(nx, ny) match {
+          getGridLander(nx, ny) match {
             case None => () // out of playing field
             case Some(neighbor) =>
               getNeighborStateAfterConversation(neighbor) match {
                 case None => () // neighbor doesn't subscribe
                 case Some(newNeighborState) =>
-                  boardUI.changeGridlander(nx, ny, newNeighborState)
+                  changeGridLander(nx, ny, newNeighborState)
               }
           }
         })

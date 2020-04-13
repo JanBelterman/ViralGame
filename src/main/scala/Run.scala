@@ -11,7 +11,6 @@ object Run {
       ColorSchemes.getVibrantColorScheme, // higher order functions for defining color scheme
       RandomGeneration.generateGrid // higher order functions for defining the generation strategy
     )
-    gameGUI.generateInitialGrid()
     gameGUI.run()
   }
 
