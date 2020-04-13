@@ -9,12 +9,11 @@ import Data.Gridlander.Gridlander
 
 class BoardGUI(val squareSize: Int,
                val gridSize:Int,
-               val getGrid: () => Array[Array[Gridlander]],
+               var grid: List[List[Gridlander]],
                val getSquareColor: GameTypes.ColorScheme) extends JPanel {
 
   protected override def paintComponent(g: Graphics): Unit = {
     super.paintComponent(g)
-    val grid = getGrid()
     for (x <- 0 until gridSize) {
       for (y <- 0 until gridSize) {
         g.setColor(getSquareColor(grid(x)(y)))
@@ -27,6 +26,10 @@ class BoardGUI(val squareSize: Int,
 
   override def getPreferredSize: Dimension = {
     new Dimension(gridSize * squareSize, gridSize * squareSize)
+  }
+
+  def setGrid(newGrid: List[List[Gridlander]]): Unit = {
+    this.grid = newGrid
   }
 
 }
