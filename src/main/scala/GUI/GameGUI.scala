@@ -6,14 +6,16 @@ import AI.RandomAI
 import Data.Gridlander.Gridlander
 import Data.{Gridlander, Paradigm}
 import Data.Paradigm.Paradigm
-import Gridland.GridLand
+import Gridland.{GridLand, Player}
 import javax.swing.{JFrame, JLabel, JPanel}
 
 object GameTypes {
   type ColorScheme = Gridlander => Color
   type GenerationStrategy = Int => Array[Array[Gridlander]]
+  type PlayerTuple = (() => String, Paradigm => Double, Paradigm => Unit, () => Option[Paradigm])
 }
 
+// todo when all is done maybe scrap all logic from this class too in a function
 class GameGUI private(val gridSize: Int,
                       val squareSize: Int,
                       val colorScheme: GameTypes.ColorScheme,
@@ -30,17 +32,17 @@ class GameGUI private(val gridSize: Int,
 
   // todo maybe store SUB_PLAYER_1 in the player function, but then we have to create an object closure function for player
   // todo that maps directly to the GUI (the GUI objects should have a player closure that has multiple functions to rule its state updates)
-  val players: List[(PlayerGUI, () => Option[Paradigm])] = List(
-    (new PlayerGUI("Player 1"), () => None),
-    (new PlayerGUI("Player 2"), RandomAI.getParadigm), // todo closure for players probabilities (player function object just like the board) that is the final goal
-    (new PlayerGUI("Player 3"), RandomAI.getParadigm),
-    (new PlayerGUI("Player 4"), RandomAI.getParadigm)
+  val players: List[PlayerGUI] = List(
+    new PlayerGUI(Player.createPlayer("Player 1", () => None)),
+    new PlayerGUI(Player.createPlayer("Player 2", RandomAI.getParadigm)),
+    new PlayerGUI(Player.createPlayer("Player 3", RandomAI.getParadigm)),
+    new PlayerGUI(Player.createPlayer("Player 4", RandomAI.getParadigm))
   )
 
   // Row 1
-  frame.add(players(0)._1)
+  frame.add(players(0))
   frame.add(new JLabel())
-  frame.add(players(1)._1)
+  frame.add(players(1))
 
   // Row 2
   frame.add(new JLabel())
@@ -48,9 +50,9 @@ class GameGUI private(val gridSize: Int,
   frame.add(new JLabel())
 
   // Row 3
-  frame.add(players(2)._1)
+  frame.add(players(2))
   frame.add(new JLabel())
-  frame.add(players(3)._1)
+  frame.add(players(3))
 
   frame.setDefaultCloseOperation(3)
   frame.pack()
@@ -58,6 +60,8 @@ class GameGUI private(val gridSize: Int,
   frame.setVisible(true)
 
   // todo immutable data in recursive game loop also check when game is won (end case of recursion)
+  // todo this function has all data and passes it to other functions that are pure (and thus don't have own data or side effects)
+  // todo then this function gets the return variables and stores them
   def run(): Unit = {
     playTurn()
     simulateGridland()
@@ -68,22 +72,13 @@ class GameGUI private(val gridSize: Int,
 
   def playTurn(): Unit = {
     for (i <- 0 to 3) {
-      val (playerGUI, getParadigm) = players(i)
-      val paradigm = getParadigm() match {
+      val playerGUI = players(i)
+      val paradigm = playerGUI.getVideoParadigm() match {
         case None => playerGUI.askInput()
         case Some(paradigm) => paradigm
       }
-      increaseProbability(playerGUI, paradigm, 0.1)
+      playerGUI.increaseProbability(paradigm)
     }
-  }
-
-  def increaseProbability(playerGUI: PlayerGUI, paradigm: Paradigm, probabilityIncrease: Double): Unit = {
-    val probability = paradigm match {
-      case Paradigm.FUNCTIONAL => playerGUI.functionalProbability + probabilityIncrease
-      case Paradigm.OO => playerGUI.ooProbability + probabilityIncrease
-      case Paradigm.DECLARATIVE => playerGUI.declarativeProbability + probabilityIncrease
-    }
-    playerGUI.setParadigmProbability(paradigm, probability)
   }
 
   // todo Gridlanders moeten pas na de ronde hun nieuwe subscription over kunnen brengen (dus immutable data!)
@@ -127,19 +122,19 @@ class GameGUI private(val gridSize: Int,
   private def doesNeighborSubscribe(playerGUI: PlayerGUI, gridlander: Gridlander): Boolean = {
     val probabilityThreshold = scala.util.Random.nextDouble()
     gridlander match {
-      case Gridlander.PREFER_FUNCTIONAL => probabilityThreshold <= playerGUI.functionalProbability
-      case Gridlander.PREFER_OO => probabilityThreshold <= playerGUI.ooProbability
-      case Gridlander.PREFER_DECLARATIVE => probabilityThreshold <= playerGUI.declarativeProbability
+      case Gridlander.PREFER_FUNCTIONAL => probabilityThreshold <= playerGUI.getProbability(Paradigm.FUNCTIONAL)
+      case Gridlander.PREFER_OO => probabilityThreshold <= playerGUI.getProbability(Paradigm.OO)
+      case Gridlander.PREFER_DECLARATIVE => probabilityThreshold <= playerGUI.getProbability(Paradigm.DECLARATIVE)
       case _ => false // already subscribed
     }
   }
 
   private def getPlayerGUIAndIndex(gridlander: Gridlander): Option[(PlayerGUI, Int)] = {
      gridlander match {
-       case Gridlander.SUB_PLAYER_1 => Some((players(0)._1, 0))
-       case Gridlander.SUB_PLAYER_2 => Some((players(1)._1, 1))
-       case Gridlander.SUB_PLAYER_3 => Some((players(2)._1, 2))
-       case Gridlander.SUB_PLAYER_4 => Some((players(3)._1, 3))
+       case Gridlander.SUB_PLAYER_1 => Some((players(0), 0))
+       case Gridlander.SUB_PLAYER_2 => Some((players(1), 1))
+       case Gridlander.SUB_PLAYER_3 => Some((players(2), 2))
+       case Gridlander.SUB_PLAYER_4 => Some((players(3), 3))
        case _ => None
      }
   }

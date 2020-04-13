@@ -5,9 +5,12 @@ import Data.Paradigm
 import Data.Paradigm.Paradigm
 import javax.swing.{JButton, JLabel, JPanel}
 
-class PlayerGUI(val topText: String) extends JPanel {
+class PlayerGUI(val player: GameTypes.PlayerTuple) extends JPanel {
+
+  val (getPlayerName, getProbability, increaseProbability, getVideoParadigm): GameTypes.PlayerTuple = player
+
   setLayout(new GridLayout(3,3))
-  val playerLabel = new JLabel(topText, 0)
+  val playerLabel = new JLabel(getPlayerName(), 0)
 
   val fpPrefix = "FP: "
   val ooPrefix = "OO: "
@@ -38,27 +41,29 @@ class PlayerGUI(val topText: String) extends JPanel {
   paradigm2Button.addActionListener( _ => chosenParadigm = Paradigm.OO)
   paradigm3Button.addActionListener( _ => chosenParadigm = Paradigm.DECLARATIVE)
 
-  var functionalProbability = 0.0
-  var ooProbability = 0.0
-  var declarativeProbability = 0.0
-
   def setNameText(text: String): Unit = {
     playerLabel.setText(text)
   }
 
-  def setParadigmProbability(paradigm: Paradigm, probability: Double): Unit = {
-    val (label, prefix, newProbability) = paradigm match {
-      case Data.Paradigm.FUNCTIONAL =>
-        functionalProbability = probability
-        (fpLabel, fpPrefix, functionalProbability)
-      case Data.Paradigm.OO =>
-        ooProbability = probability
-        (ooLabel, ooPrefix, ooProbability)
-      case Data.Paradigm.DECLARATIVE =>
-        declarativeProbability = probability
-        (dclLabel, dclPrefix, declarativeProbability)
-    }
-    label.setText(prefix + (newProbability * 100).toInt + "%")
+//  def setParadigmProbability(paradigm: Paradigm, probability: Double): Unit = {
+//    val (label, prefix, newProbability) = paradigm match {
+//      case Data.Paradigm.FUNCTIONAL =>
+//        functionalProbability = probability
+//        (fpLabel, fpPrefix, functionalProbability)
+//      case Data.Paradigm.OO =>
+//        ooProbability = probability
+//        (ooLabel, ooPrefix, ooProbability)
+//      case Data.Paradigm.DECLARATIVE =>
+//        declarativeProbability = probability
+//        (dclLabel, dclPrefix, declarativeProbability)
+//    }
+//    label.setText(prefix + (newProbability * 100).toInt + "%")
+//  }
+
+  def updateProbability(): Unit = {
+    fpLabel.setText(fpPrefix + (getProbability(Paradigm.FUNCTIONAL) * 100).toInt + "%")
+    ooLabel.setText(ooPrefix + (getProbability(Paradigm.OO) * 100).toInt + "%")
+    dclLabel.setText(dclPrefix + (getProbability(Paradigm.DECLARATIVE) * 100).toInt + "%")
   }
 
   def askInput(): Paradigm = {
