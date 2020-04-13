@@ -22,9 +22,11 @@ class GameGUI private(val gridSize: Int,
   val centeredBoardUI = new JPanel(new FlowLayout(FlowLayout.CENTER))
   centeredBoardUI.add(boardUI)
 
+  // todo maybe store SUB_PLAYER_1 in the player function, but then we have to create an object closure function for player
+  // todo that maps directly to the GUI (the GUI objects should have a player closure that has multiple functions to rule its state updates)
   val players: List[(PlayerGUI, () => Option[Paradigm])] = List(
     (new PlayerGUI("Player 1"), () => None),
-    (new PlayerGUI("Player 2"), RandomAI.getParadigm), // todo closure for players probabilities
+    (new PlayerGUI("Player 2"), RandomAI.getParadigm), // todo closure for players probabilities (player function object just like the board) that is the final goal
     (new PlayerGUI("Player 3"), RandomAI.getParadigm),
     (new PlayerGUI("Player 4"), RandomAI.getParadigm)
   )
@@ -49,24 +51,11 @@ class GameGUI private(val gridSize: Int,
   frame.setLocationByPlatform(true)
   frame.setVisible(true)
 
-  def setPlayerName(playerNr: Int, name: String): Unit = {
-    val chosenPlayerGUI = players(playerNr)._1
-    chosenPlayerGUI.setNameText(name)
+  def run(): Unit = {
+    playTurn()
+    simulateGridland()
+    run()
   }
-
-  // todo pure functions
-  // todo higher order function for probability increase (maybe also some random strategy?)
-  def increaseProbability(playerGUI: PlayerGUI, paradigm: Paradigm, probabilityIncrease: Double): Unit = {
-    val probability = paradigm match {
-      case Paradigm.FUNCTIONAL => playerGUI.functionalProbability + probabilityIncrease
-      case Paradigm.OO => playerGUI.ooProbability + probabilityIncrease
-      case Paradigm.DECLARATIVE => playerGUI.declarativeProbability + probabilityIncrease
-    }
-    playerGUI.setParadigmProbability(paradigm, probability)
-  }
-
-  // todo player closure object function?
-//  private def getPlayer(playerNr: Int): (PlayerGUI, () => Paradigm, )
 
   def playTurn(): Unit = {
     for (i <- 0 to 3) {
@@ -77,6 +66,16 @@ class GameGUI private(val gridSize: Int,
       }
       increaseProbability(playerGUI, paradigm, 0.1)
     }
+  }
+
+  // todo higher order function for probability increase (maybe also some random strategy?)
+  def increaseProbability(playerGUI: PlayerGUI, paradigm: Paradigm, probabilityIncrease: Double): Unit = {
+    val probability = paradigm match {
+      case Paradigm.FUNCTIONAL => playerGUI.functionalProbability + probabilityIncrease
+      case Paradigm.OO => playerGUI.ooProbability + probabilityIncrease
+      case Paradigm.DECLARATIVE => playerGUI.declarativeProbability + probabilityIncrease
+    }
+    playerGUI.setParadigmProbability(paradigm, probability)
   }
 
   // todo higher order function generate gridland strategy?
@@ -98,46 +97,44 @@ class GameGUI private(val gridSize: Int,
     boardUI.changeGridlander(boardUI.gridSize - 1, boardUI.gridSize - 1, Gridlander.SUB_PLAYER_4)
   }
 
-  // todo higher order function simulate different strategies
-  private def simulateGridland(grid: Array[Array[Gridlander]]): Unit = {
+  // todo Gridlanders moeten pas na de ronde hun nieuwe subscription over kunnen brengen (dus immutable data!)
+  private def simulateGridland(): Unit = {
     for (x <- 0 until gridSize) {
       for (y <- 0 until gridSize) {
-        // get gridlander
-        val gridlander = grid(x)(y)
-        val playerGUI = getPlayerProbabilities(gridlander)
-        playerGUI match {
-          case None => ()
-          case Some((playerGUI, playerNr)) =>
-            // todo gridlander function that can be passed another function (another gridlander) or gridlander internal state with closure and has function talkWith() in that method the logic!!
-            // todo and then a function factory that creates gridlanders with certain state
-            // if subscribed talks to each neighbor
-            val neighborsCords: List[(Int, Int)] = List((x, y - 1), (x + 1, y), (x, y + 1), (x - 1, y))
-            neighborsCords.foreach((neighborCords: (Int, Int)) => {
-              boardUI.getGridlander(neighborCords._1, neighborCords._2) match {
-                case None => ()
-                case Some(neighbor) if doesNeighborSubscribe(playerGUI, neighbor) =>
-                  boardUI.changeGridlander(neighborCords._1, neighborCords._2, getGridlanderStateSubscribedToPlayer(playerNr))
-                case _ => ()
+        val gridLander = boardUI.grid(x)(y)
+        val playerGUI = getPlayerGUIAndIndex(gridLander)
+        val getNeighborStateAfterConversation: (Gridlander) => Option[Gridlander] = simulateMeeting(playerGUI) // Currying and partial function application for clearer code
+        List((x, y - 1), (x + 1, y), (x, y + 1), (x - 1, y)).foreach((neighborCords: (Int, Int)) => {
+          val (nx, ny) = neighborCords
+          boardUI.getGridlander(nx, ny) match {
+            case None => () // out of playing field
+            case Some(neighbor) =>
+              getNeighborStateAfterConversation(neighbor) match {
+                case None => () // neighbor doesn't subscribe
+                case Some(newNeighborState) =>
+                  boardUI.changeGridlander(nx, ny, newNeighborState)
               }
-            })
-        }
+          }
+        })
       }
     }
   }
 
-  // todo these functions can als obe excluded from here?
-
-  // todo find a way to get rid of these ugly mappings, maybe store SUB_PLAYER_1 in the player function, but then we have to create an object closure function for player that maps directly to the GUI (the GUI objects should have a player closure that has multiple functions to rule its state updates)
-  def getGridlanderStateSubscribedToPlayer(playerNr: Int): Gridlander = {
-    playerNr match {
-      case 0 => Gridlander.SUB_PLAYER_1
-      case 1 => Gridlander.SUB_PLAYER_2
-      case 2 => Gridlander.SUB_PLAYER_3
-      case 3 => Gridlander.SUB_PLAYER_4
+  private def simulateMeeting(playerOpt: Option[(PlayerGUI, Int)])(neighbor: Gridlander): Option[Gridlander] = {
+    playerOpt match {
+      case None => None // first gridLander was not subscribed
+      case Some((playerGUI, playerNr)) if (doesNeighborSubscribe(playerGUI, neighbor)) =>
+        playerNr match {
+          case 0 => Some(Gridlander.SUB_PLAYER_1)
+          case 1 => Some(Gridlander.SUB_PLAYER_2)
+          case 2 => Some(Gridlander.SUB_PLAYER_3)
+          case 3 => Some(Gridlander.SUB_PLAYER_4)
+        }
+      case _ => None
     }
   }
 
-  def doesNeighborSubscribe(playerGUI: PlayerGUI, gridlander: Gridlander): Boolean = {
+  private def doesNeighborSubscribe(playerGUI: PlayerGUI, gridlander: Gridlander): Boolean = {
     val probabilityThreshold = scala.util.Random.nextDouble()
     gridlander match {
       case Gridlander.PREFER_FUNCTIONAL => probabilityThreshold <= playerGUI.functionalProbability
@@ -147,7 +144,7 @@ class GameGUI private(val gridSize: Int,
     }
   }
 
-  def getPlayerProbabilities(gridlander: Gridlander): Option[(PlayerGUI, Int)] = {
+  private def getPlayerGUIAndIndex(gridlander: Gridlander): Option[(PlayerGUI, Int)] = {
      gridlander match {
        case Gridlander.SUB_PLAYER_1 => Some((players(0)._1, 0))
        case Gridlander.SUB_PLAYER_2 => Some((players(1)._1, 1))
@@ -155,12 +152,6 @@ class GameGUI private(val gridSize: Int,
        case Gridlander.SUB_PLAYER_4 => Some((players(3)._1, 3))
        case _ => None
      }
-  }
-
-  def run(): Unit = {
-    playTurn()
-    simulateGridland(boardUI.grid)
-    run()
   }
 
 }
