@@ -3,6 +3,7 @@ import java.awt.GridLayout
 
 import Data.Paradigm
 import Data.Paradigm.Paradigm
+import Game.GameTypes
 import javax.swing.{JButton, JLabel, JPanel}
 
 class PlayerGUI(val player: GameTypes.PlayerTuple) extends JPanel {

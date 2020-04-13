@@ -24,8 +24,8 @@ object RandomGeneration {
     case (x, _) if x < 0 || x > gridSize - 1 => Nil // out of range
     case (_, y) if y < 0 || y > gridSize - 1 => Nil // out of range
     case (x, y) if x == 0 && y == 0 => Gridlander.SUB_PLAYER_1::generateStreet(gridSize, x, y + 1)
-    case (x, y) if x == 0 && y == gridSize - 1 => List(Gridlander.SUB_PLAYER_2)
-    case (x, y) if x == gridSize - 1 && y == 0 => Gridlander.SUB_PLAYER_3::generateStreet(gridSize, x, y + 1)
+    case (x, y) if x == gridSize - 1 && y == 0 => Gridlander.SUB_PLAYER_2::generateStreet(gridSize, x, y + 1)
+    case (x, y) if x == 0 && y == gridSize - 1 => List(Gridlander.SUB_PLAYER_3)
     case (x, y) if x == gridSize - 1 && y == gridSize - 1 => List(Gridlander.SUB_PLAYER_4)
     case (x, y) =>
       val gridLander = scala.util.Random.nextInt(3) match {

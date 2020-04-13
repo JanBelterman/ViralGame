@@ -1,43 +1,27 @@
+import AI.{RandomAI, ScriptAI}
 import ColorSchemes.ColorSchemes
-import Data.Gridlander.Gridlander
-import GUI.GameGUI
+import Data.Paradigm
+import Game.Game
 import GenerationStrategies.RandomGeneration
+import Gridland.Player
 
 object Run {
 
   def main(args: Array[String]): Unit = {
-    val gameGUI = GameGUI.createGameGUI(
+    Game.start(
       10,
       25,
       ColorSchemes.getVibrantColorScheme, // higher order functions for defining color scheme
-      RandomGeneration.generateGrid // higher order functions for defining the generation strategy
+      RandomGeneration.generateGrid, // higher order functions for defining the generation strategy
+      List(
+        Player.createPlayer("Player 1", () => None),
+        Player.createPlayer("Player 2", ScriptAI.createScriptAI(List(
+          Paradigm.FUNCTIONAL, Paradigm.DECLARATIVE, Paradigm.OO
+        ))),
+        Player.createPlayer("Player 3", RandomAI.getParadigm),
+        Player.createPlayer("Player 4", RandomAI.getParadigm)
+      )
     )
-    gameGUI.run()
   }
-
-}
-
-object GameTypes {
-
-
-
-}
-
-object Game {
-
-  def start(): Unit = {
-    // todo setup all functions and objects
-  }
-
-//  @scala.annotation.tailrec
-//  def loop(grid: List[List[Gridlander]]): Unit = {
-    // todo create all new ui elements each round, because they may not change
-//    val newGrid: List[List[Gridlander]] =
-//    loop(newGrid)
-//  }
-
-//  def simulateGridLand(grid: List[List[Gridlander]], getGridLander: (Int, Int) => Gridlander): Unit = { // todo or pass that function object with the gridland state
-//    ()
-//  }
 
 }

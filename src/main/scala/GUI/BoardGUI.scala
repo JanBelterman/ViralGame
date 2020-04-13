@@ -6,6 +6,7 @@ import java.awt.Dimension
 import java.awt.Graphics
 
 import Data.Gridlander.Gridlander
+import Game.GameTypes
 
 class BoardGUI(val squareSize: Int,
                val gridSize:Int,
@@ -28,8 +29,8 @@ class BoardGUI(val squareSize: Int,
     new Dimension(gridSize * squareSize, gridSize * squareSize)
   }
 
-  def setGrid(newGrid: List[List[Gridlander]]): Unit = {
-    this.grid = newGrid
+  def setNewGrid(newGrid: List[List[Gridlander]]): Unit = {
+    grid = newGrid
   }
 
 }

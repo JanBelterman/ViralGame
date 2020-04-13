@@ -2,7 +2,7 @@ package Gridland
 
 import Data.Paradigm
 import Data.Paradigm.Paradigm
-import GUI.GameTypes
+import Game.GameTypes
 
 object Player {
 

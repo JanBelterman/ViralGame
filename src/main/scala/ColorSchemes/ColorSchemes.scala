@@ -3,7 +3,7 @@ package ColorSchemes
 import java.awt.Color
 
 import Data.Gridlander
-import GUI.GameTypes
+import Game.GameTypes
 
 object ColorSchemes {
 
