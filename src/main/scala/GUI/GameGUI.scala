@@ -2,7 +2,7 @@ package GUI
 
 import java.awt.{Color, FlowLayout, GridLayout}
 
-import AI.RandomAI
+import AI.{RandomAI, ScriptAI}
 import Data.Gridlander.Gridlander
 import Data.{Gridlander, Paradigm}
 import Data.Paradigm.Paradigm
@@ -30,11 +30,9 @@ class GameGUI private(val gridSize: Int,
   val centeredBoardUI = new JPanel(new FlowLayout(FlowLayout.CENTER))
   centeredBoardUI.add(boardUI)
 
-  // todo maybe store SUB_PLAYER_1 in the player function, but then we have to create an object closure function for player
-  // todo that maps directly to the GUI (the GUI objects should have a player closure that has multiple functions to rule its state updates)
   val players: List[PlayerGUI] = List(
     new PlayerGUI(Player.createPlayer("Player 1", () => None)),
-    new PlayerGUI(Player.createPlayer("Player 2", RandomAI.getParadigm)),
+    new PlayerGUI(Player.createPlayer("Player 2", ScriptAI.createScriptAI(List(Paradigm.FUNCTIONAL, Paradigm.DECLARATIVE, Paradigm.OO)))),
     new PlayerGUI(Player.createPlayer("Player 3", RandomAI.getParadigm)),
     new PlayerGUI(Player.createPlayer("Player 4", RandomAI.getParadigm))
   )
@@ -89,7 +87,7 @@ class GameGUI private(val gridSize: Int,
     for (x <- 0 until gridSize) {
       for (y <- 0 until gridSize) {
         val gridLander = getGrid()(x)(y)
-        val playerGUI = getPlayerGUIAndIndex(gridLander)
+        val playerGUI = getPlayerFromSubscription(gridLander)
         val getNeighborStateAfterConversation: (Gridlander) => Option[Gridlander] = simulateMeeting(playerGUI) // Currying and partial function application for clearer code
         List((x, y - 1), (x + 1, y), (x, y + 1), (x - 1, y)).foreach((neighborCords: (Int, Int)) => {
           val (nx, ny) = neighborCords
@@ -111,7 +109,7 @@ class GameGUI private(val gridSize: Int,
   private def simulateMeeting(playerOpt: Option[(PlayerGUI, Int)])(neighbor: Gridlander): Option[Gridlander] = {
     playerOpt match {
       case None => None // first gridLander was not subscribed
-      case Some((playerGUI, playerNr)) if (doesNeighborSubscribe(playerGUI, neighbor)) =>
+      case Some((playerGUI, playerNr)) if doesNeighborSubscribe(playerGUI, neighbor) =>
         playerNr match {
           case 0 => Some(Gridlander.SUB_PLAYER_1)
           case 1 => Some(Gridlander.SUB_PLAYER_2)
@@ -122,9 +120,9 @@ class GameGUI private(val gridSize: Int,
     }
   }
 
-  private def doesNeighborSubscribe(playerGUI: PlayerGUI, gridlander: Gridlander): Boolean = {
+  private def doesNeighborSubscribe(playerGUI: PlayerGUI, gridLander: Gridlander): Boolean = {
     val probabilityThreshold = scala.util.Random.nextDouble()
-    gridlander match {
+    gridLander match {
       case Gridlander.PREFER_FUNCTIONAL => probabilityThreshold <= playerGUI.getProbability(Paradigm.FUNCTIONAL)
       case Gridlander.PREFER_OO => probabilityThreshold <= playerGUI.getProbability(Paradigm.OO)
       case Gridlander.PREFER_DECLARATIVE => probabilityThreshold <= playerGUI.getProbability(Paradigm.DECLARATIVE)
@@ -132,8 +130,8 @@ class GameGUI private(val gridSize: Int,
     }
   }
 
-  private def getPlayerGUIAndIndex(gridlander: Gridlander): Option[(PlayerGUI, Int)] = {
-     gridlander match {
+  private def getPlayerFromSubscription(gridLander: Gridlander): Option[(PlayerGUI, Int)] = {
+     gridLander match {
        case Gridlander.SUB_PLAYER_1 => Some((players(0), 0))
        case Gridlander.SUB_PLAYER_2 => Some((players(1), 1))
        case Gridlander.SUB_PLAYER_3 => Some((players(2), 2))
@@ -149,8 +147,8 @@ object GameGUI {
   def createGameGUI(gridSize: Int,
                     squareSize: Int,
                     colorScheme: GameTypes.ColorScheme,
-                    generationStrategie: GameTypes.GenerationStrategy): GameGUI = {
-    new GameGUI(gridSize, squareSize, colorScheme, generationStrategie)
+                    generationStrategy: GameTypes.GenerationStrategy): GameGUI = {
+    new GameGUI(gridSize, squareSize, colorScheme, generationStrategy)
   }
 
 }
