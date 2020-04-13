@@ -57,6 +57,7 @@ class GameGUI private(val gridSize: Int,
   frame.setLocationByPlatform(true)
   frame.setVisible(true)
 
+  // todo immutable data in recursive game loop
   def run(): Unit = {
     playTurn()
     simulateGridland()
@@ -74,7 +75,6 @@ class GameGUI private(val gridSize: Int,
     }
   }
 
-  // todo higher order function for probability increase (maybe also some random strategy?)
   def increaseProbability(playerGUI: PlayerGUI, paradigm: Paradigm, probabilityIncrease: Double): Unit = {
     val probability = paradigm match {
       case Paradigm.FUNCTIONAL => playerGUI.functionalProbability + probabilityIncrease
@@ -116,6 +116,7 @@ class GameGUI private(val gridSize: Int,
     }
   }
 
+  // Curried function
   private def simulateMeeting(playerOpt: Option[(PlayerGUI, Int)])(neighbor: Gridlander): Option[Gridlander] = {
     playerOpt match {
       case None => None // first gridLander was not subscribed
